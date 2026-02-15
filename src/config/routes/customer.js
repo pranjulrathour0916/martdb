@@ -2,7 +2,7 @@ import { Router } from "express";
 import pool from "../../db.js";
 import bcrypt, { genSalt, hash } from "bcryptjs";
 import { generateAccessToken, generateRefreshToken } from "../generateToken.js";
-import { validateSignUP } from "../../middleware/validators.js";
+import { validateLogin, validateSignUP } from "../../middleware/validators.js";
 
 const router = Router();
 
@@ -41,35 +41,48 @@ router.post("/signUp", validateSignUP,async (req, res) => {
     const chkphn = await pool.query(`SELECT verify_existcust($1)`, [phone]);
     const chkmail = await pool.query(`SELECT verify_existcust($1)`, [email]);
     if (chkphn.rows[0].verify_existcust || chkmail.rows[0].verify_existcust)
-      return res.status(400).send("User number already exist");
+      return res.status(400).send("Mobile number or email already exist");
     const salt = await bcrypt.genSalt(10);
     const hashpass = await bcrypt.hash(password, salt);
-    console.log(hashpass);
     const user = await pool.query(`SELECT create_cust($1, $2, $3, $4)`, [
       name,
       phone,
       email,
       hashpass,
     ]);
-   return res.status(201).json({ message: "User created" });
+   return res.status(201).send({ message: "User created" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.detail });
+    console.error("SignUp Error:", error.message);
+    return res.status(500).json({ 
+      error: "An unexpected error occurred during registration" 
+    });
   }
 });
 
 // Login user with phone number and password
 
-router.get("/login", async (req, res) => {
+router.get("/login", validateLogin,async (req, res) => {
   try {
-    const { phone, password } = req.body;
-    const result = await pool.query(`SELECT verify_cust($1, $2)`, [
-      phone,
-      password,
-    ]);
-    const val = result.rows[0].verify_cust;
-    if (val) res.send("Login Successfull", JSON.stringify(result.rows));
-    else res.send("Invalid credetials");
+   const {phone, password} = req.body;
+   const pass = await pool.query(`select cust_pass($1)`,[phone]);
+   console.log(pass.rows[0].cust_pass)
+    if (pass.rowCount>0) 
+    {  const compPass = await bcrypt.compare(password,pass.rows[0].cust_pass)
+      console.log("bcrrpt",compPass);
+      if(compPass)
+      {
+        generateAccessToken();
+        const token = generateRefreshToken();
+        console.log("refresh token", token)
+        // const saveToken = await pool.query(`select insertToken{$1},{$2}`[])
+        res.status(200).send("Login Successfull");
+      }
+      else
+        res.status(400).send("Inavlid Credetials");
+    }
+     else
+        res.status(400).send("Inavlid Credetials");
+ 
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.detail });

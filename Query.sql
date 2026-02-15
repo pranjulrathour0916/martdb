@@ -160,3 +160,41 @@ BEGIN
     );
 END;
 $$;
+
+===================================================================================================================================================
+
+
+CREATE OR REPLACE FUNCTION cust_pass(identifier VARCHAR)
+RETURNS TABLE (
+    id INT,
+   password VARCHAR(100)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        c.cust_id,
+        c.password
+    FROM customers c WHERE c.phone::TEXT = identifier
+    OR c.email = identifier ;
+END;
+$$;
+
+===================================================================================================================================================
+
+
+CREATE OR REPLACE FUNCTION insertToken(t_id INT, t_hash VARCHAR)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+new_id INT;
+BEGIN
+    INSERT INTO refresh_token  (user_id, tokenhash)
+    VALUES (t_id, t_hash)
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
