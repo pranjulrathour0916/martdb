@@ -125,3 +125,38 @@ BEGIN
     RETURN new_id;
 END;
 $$;
+
+===================================================================================================================================================
+
+
+CREATE OR REPLACE FUNCTION verfify_cust(phn NUMERIC, pass VARCHAR)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    RETURN EXISTS
+    (
+        SELECT 1 FROM customers c
+        WHERE c.phone = phn AND
+        c.password = pass
+    );
+END;
+$$;
+
+===================================================================================================================================================
+
+CREATE OR REPLACE FUNCTION verify_existcust(identifier VARCHAR)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+    RETURN EXISTS
+    (
+        SELECT 1 FROM customers c
+        WHERE c.phone::TEXT = identifier OR
+        c.email = identifier
+    );
+END;
+$$;
