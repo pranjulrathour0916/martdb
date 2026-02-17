@@ -1,8 +1,9 @@
 import { Router } from "express";
 import pool from "../../db.js";
-import bcrypt, { genSalt, hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { generateAccessToken, generateRefreshToken } from "../generateToken.js";
 import { validateLogin, validateSignUP } from "../../middleware/validators.js";
+import cypto from "crypto";
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.get("/cust/:phone", async (req, res) => {
 
 // SignIn User api require name, phone, email and password
 
-router.post("/signUp", validateSignUP,async (req, res) => {
+router.post("/signUp", validateSignUP, async (req, res) => {
   try {
     const { name, phone, email, password } = req.body;
     const chkphn = await pool.query(`SELECT verify_existcust($1)`, [phone]);
@@ -50,39 +51,52 @@ router.post("/signUp", validateSignUP,async (req, res) => {
       email,
       hashpass,
     ]);
-   return res.status(201).send({ message: "User created" });
+    return res.status(201).send({ message: "User created" });
   } catch (error) {
     console.error("SignUp Error:", error.message);
-    return res.status(500).json({ 
-      error: "An unexpected error occurred during registration" 
+    return res.status(500).json({
+      error: "An unexpected error occurred during registration",
     });
   }
 });
 
 // Login user with phone number and password
 
-router.get("/login", validateLogin,async (req, res) => {
+router.post("/login", validateLogin, async (req, res) => {
   try {
-   const {phone, password} = req.body;
-   const pass = await pool.query(`select cust_pass($1)`,[phone]);
-   console.log(pass.rows[0].cust_pass)
-    if (pass.rowCount>0) 
-    {  const compPass = await bcrypt.compare(password,pass.rows[0].cust_pass)
-      console.log("bcrrpt",compPass);
-      if(compPass)
-      {
-        generateAccessToken();
-        const token = generateRefreshToken();
-        console.log("refresh token", token)
-        // const saveToken = await pool.query(`select insertToken{$1},{$2}`[])
-        res.status(200).send("Login Successfull");
-      }
-      else
-        res.status(400).send("Inavlid Credetials");
-    }
-     else
-        res.status(400).send("Inavlid Credetials");
- 
+    const { phone, password } = req.body;
+    //Fteching password from DB 
+    const pass = await pool.query(`select (cust_pass($1)).*`, [phone]);
+    if (pass.rowCount > 0) {
+      //Comapring password
+      const compPass = await bcrypt.compare(password, pass.rows[0].password);
+      if (compPass) {
+        // Geerating access and referesh tokens
+        const accessToken = generateAccessToken(pass);
+        const refreshToken = generateRefreshToken(pass.rows[0]);
+
+        // For security reasons first hash the refresh token and then save it in DB
+        const hashedRefreshToken = cypto
+          .createHash("sha256") // sha256 is an algorithm
+          .update(refreshToken) // updating what we are storing 
+          .digest("hex"); // using hex for more readable format
+        const saveToken = await pool.query(`select inserttoken ($1 ,$2)`, [
+          pass.rows[0].id,
+          hashedRefreshToken,
+        ]);
+        // Saving refreshtoken in cookie
+        res.cookie("refreshtoken", refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000, // it becomes 7 days
+        });
+        res.status(200).json({
+          message: "Login Successful",
+          accessToken,
+        });
+      } else res.status(400).send("Inavlid Credetials");
+    } else res.status(400).send("Inavlid Credetials");
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.detail });

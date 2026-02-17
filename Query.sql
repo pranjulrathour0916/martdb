@@ -184,7 +184,7 @@ $$;
 ===================================================================================================================================================
 
 
-CREATE OR REPLACE FUNCTION insertToken(t_id INT, t_hash VARCHAR)
+CREATE OR REPLACE FUNCTION insertToken(t_id INT, t_hash TEXT)
 RETURNS INT
 LANGUAGE plpgsql
 AS $$
