@@ -6,7 +6,7 @@ const app = express();
 import router from './config/routes/customer.js';
 import { express as useragentMiddleware } from 'express-useragent';
 import geoip from 'geoip-lite';
-
+import prodRouter from './config/routes/prodcts.js'
 
 app.set('trust proxy', true);
 app.use(express.json());
@@ -47,6 +47,7 @@ const geo = geoip.lookup(ip) || { country: 'Local/Unknown', city: 'Local' };
 });
 
 app.use('/', router);
+app.use('/prod',prodRouter )
 app.listen(process.env.PORT,()=>{
     console.log(`Server is runnning on port ${process.env.PORT}`)
 })

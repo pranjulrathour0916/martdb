@@ -1,24 +1,26 @@
 Query 
 
-CREATE OR REPLACE FUNCTION get_all_prodbyid(id INT)
+CREATE OR REPLACE FUNCTION get_all_prod(lim INT)
 RETURNS TABLE (
     p_id INT,
     p_name TEXT,
     price NUMERIC,
     cat_id INT,
-    stock INT
+    img TEXT,
+    descrip TEXT
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        p.p_id,
-        p.p_name::TEXT,
+        p.id,
+        p.name::TEXT,
         p.price,
         p.cat_id,
-        p.stock
-    FROM products p WHERE p.p_id = id;
+        p.image,
+        p.description
+    FROM products LIMIT lim;
 END;
 $$;
 
@@ -196,5 +198,33 @@ BEGIN
     RETURNING id INTO new_id;
 
     RETURN new_id;
+END;
+$$;
+
+==============================================================================================================================================
+
+CREATE OR REPLACE FUNCTION get_all_prodFilter(identifier TEXT )
+RETURNS TABLE (
+    p_id INT,
+    p_name TEXT,
+    price NUMERIC,
+    cat_id INT,
+    img TEXT,
+    descrip TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.title::TEXT,
+        p.price,
+        p.cat_id,
+        p.image,
+        p.description
+    FROM products p JOIN category c on p.cat_id = c.cat_id 
+    WHERE p.cat_id :: TEXT = identifier 
+    OR c.category = identifier;
 END;
 $$;

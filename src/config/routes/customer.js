@@ -7,32 +7,8 @@ import cypto from "crypto";
 
 const router = Router();
 
-router.get("/getallProd", async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 3;
-    const result = await pool.query(`select * from get_all_prod() LIMIT $1`, [
-      limit,
-    ]);
-    res.send(JSON.stringify(result.rows));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
 
-// Ftech Customers details for login
 
-router.get("/cust/:phone", async (req, res) => {
-  try {
-    const phone = req.params.phone;
-    console.log("phone ", phone);
-    const result = await pool.query(`SELECT * FROM get_customer($1)`, [phone]);
-    res.send(JSON.stringify(result.rows));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error });
-  }
-});
 
 // SignIn User api require name, phone, email and password
 
@@ -102,5 +78,87 @@ router.post("/login", validateLogin, async (req, res) => {
     res.status(500).json({ error: error.detail });
   }
 });
+
+// Refresh route 
+
+router.post('/refreshToke', async(req, res)=>{
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).send("No refresh token");
+    }
+
+    // Verify JWT
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
+    } catch (err) {
+      return res.status(403).send("Invalid refresh token");
+    }
+
+    //  Hash incoming token
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(refreshToken)
+      .digest("hex");
+
+    // Check DB
+    const tokenResult = await pool.query(
+      `SELECT * FROM refresh_tokens WHERE token_hash = $1`,
+      [hashedToken]
+    );
+
+    if (tokenResult.rowCount === 0) {
+      return res.status(403).send("Refresh token not found");
+    }
+
+    // Delete old token (rotation)
+    await pool.query(
+      `DELETE FROM refresh_tokens WHERE token_hash = $1`,
+      [hashedToken]
+    );
+
+    // Generate new tokens
+    const newAccessToken = generateAccessToken({
+      id: decoded.id
+    });
+
+    const newRefreshToken = generateRefreshToken({
+      id: decoded.id
+    });
+
+    const newHashedToken = crypto
+      .createHash("sha256")
+      .update(newRefreshToken)
+      .digest("hex");
+
+    //  Store new refresh token
+    await pool.query(
+      `INSERT INTO refresh_tokens (user_id, token_hash)
+       VALUES ($1, $2)`,
+      [decoded.id, newHashedToken]
+    );
+
+    // Send new cookie
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    return res.status(200).json({
+      accessToken: newAccessToken
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+
+})
+
+//Logout route pending
 
 export default router;
