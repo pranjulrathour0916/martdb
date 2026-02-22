@@ -228,3 +228,44 @@ BEGIN
     OR c.category = identifier;
 END;
 $$;
+
+==============================================================================================================================================
+
+select c.cust_name, o.total_amt, o.date, o.id, p.image, p.description, p.title, oi.id
+from orders o 
+left join customers c on c.cust_id = o.cust_id
+left join orditems oi on oi.ord_id = o.id
+left join products p on p.id = oi.p_id where c.cust_id = 1;
+
+==============================================================================================================================================
+
+CREATE OR REPLACE FUNCTION get_orders(identifier INT )
+RETURNS TABLE (
+    name VARCHAR,
+    totalamt NUMERIC,
+    ordDate TIMESTAMP,
+    id INT,
+    img TEXT,
+    descrip TEXT,
+    prodName TEXT,
+    orderID INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT c.cust_name, 
+       o.total_amt, 
+       o.date, 
+       o.id, 
+       p.image, 
+       p.description, 
+       p.title, 
+       oi.id
+FROM customers c
+LEFT JOIN orders o ON c.cust_id = o.cust_id
+LEFT JOIN orditems oi ON oi.ord_id = o.id
+LEFT JOIN products p ON p.id = oi.p_id
+WHERE c.cust_id = 1;
+END;
+$$;

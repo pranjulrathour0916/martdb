@@ -48,7 +48,7 @@ router.post("/login", validateLogin, async (req, res) => {
       const compPass = await bcrypt.compare(password, pass.rows[0].password);
       if (compPass) {
         // Geerating access and referesh tokens
-        const accessToken = generateAccessToken(pass);
+        const accessToken = generateAccessToken(pass.rows[0]);
         const refreshToken = generateRefreshToken(pass.rows[0]);
 
         // For security reasons first hash the refresh token and then save it in DB
@@ -81,7 +81,7 @@ router.post("/login", validateLogin, async (req, res) => {
 
 // Refresh route 
 
-router.post('/refreshToke', async(req, res)=>{
+router.post('/refreshToken', async(req, res)=>{
   try {
     const refreshToken = req.cookies.refreshToken;
 
