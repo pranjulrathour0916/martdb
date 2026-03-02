@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { generateAccessToken, generateRefreshToken } from "../generateToken.js";
 import { validateLogin, validateSignUP } from "../../middleware/validators.js";
 import cypto from "crypto";
+import { authenticateUser } from "../../middleware/authenticate.js";
 
 const router = Router();
 
@@ -14,6 +15,7 @@ const router = Router();
 
 router.post("/signUp", validateSignUP, async (req, res) => {
   try {
+    console.log("working")
     const { name, phone, email, password } = req.body;
     const chkphn = await pool.query(`SELECT verify_existcust($1)`, [phone]);
     const chkmail = await pool.query(`SELECT verify_existcust($1)`, [email]);
@@ -61,23 +63,40 @@ router.post("/login", validateLogin, async (req, res) => {
           hashedRefreshToken,
         ]);
         // Saving refreshtoken in cookie
-        res.cookie("refreshtoken", refreshToken, {
+        res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: "strict",
+          secure: false,
+          sameSite: "lax",
           maxAge: 7 * 24 * 60 * 60 * 1000, // it becomes 7 days
         });
         res.status(200).json({
           message: "Login Successful",
           accessToken,
         });
-      } else res.status(400).send("Inavlid Credetials");
+      } else res.status(400).json({message : "Inavlid Credetials"});
     } else res.status(400).send("Inavlid Credetials");
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.detail });
   }
 });
+
+// Me Route to check for an existing from referesh token.
+
+router.get('/me',authenticateUser ,async (req, res)=>{
+  try {
+    const user = req.user.id;
+    console.log("backend ", user)
+    const result = await pool.query(`Select * from customers where cust_id = $1`, [user])
+    if(!result)
+      res.status(400).json({messgae : "user not found"})
+
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.detail });
+  }
+})
 
 // Refresh route 
 
@@ -143,7 +162,7 @@ router.post('/refreshToken', async(req, res)=>{
     // Send new cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });

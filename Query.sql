@@ -269,3 +269,63 @@ LEFT JOIN products p ON p.id = oi.p_id
 WHERE c.cust_id = 1;
 END;
 $$;
+
+===================================================================================================================================================
+
+
+
+create table cart ( id serial primary key, cust_id int, p_id int, quantity numeric,
+foreign key (cust_id) references customer (cust_id),
+foreign key (p_id) references products (p_id));
+CREATE TABLE
+
+================================================================================================================================================
+
+
+CREATE OR REPLACE FUNCTION prodbyid(identifier INT)
+RETURNS TABLE (
+    p_id INT,
+    title TEXT,
+    price NUMERIC,
+    cat_id INT,
+    img TEXT,
+    descrip TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.title::TEXT,
+        p.price,
+        p.cat_id,
+        p.image,
+        p.description
+    FROM products p WHERE p.id = identifier;
+END;
+$$;
+
+===================================================================================================================================================
+
+
+CREATE OR REPLACE FUNCTION addtocart( c_id INT,prod_id INT, quantity NUMERIC)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+new_id INT;
+BEGIN
+    INSERT INTO cart (cust_id, p_id, quantity)
+    VALUES (c_id, prod_id, quantity)
+    ON CONFLICT (cust_id, p_id)
+    DO UPDATE
+    SET quantity = cart.quantity + EXCLUDED.quantity
+    RETURNING cust_id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+
+===================================================================================================================================================

@@ -9,6 +9,7 @@ const signUpSchema = Joi.object({
 });
 
 export const validateSignUP=(req, res, next)=>{
+    console.log("validator")
     const {error} = signUpSchema.validate(req.body, {abortEarly: false})
     if(error)
     {

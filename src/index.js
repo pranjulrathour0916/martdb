@@ -7,11 +7,16 @@ import router from './config/routes/customer.js';
 import { express as useragentMiddleware } from 'express-useragent';
 import geoip from 'geoip-lite';
 import prodRouter from './config/routes/prodcts.js'
+import cookieParser from 'cookie-parser';
 
 app.set('trust proxy', true);
 app.use(express.json());
+app.use(cookieParser())
 
-app.use(cors());
+app.use(cors({
+  origin : "http://localhost:3000",
+  credentials : true
+}));
 app.use(useragentMiddleware());
 
 

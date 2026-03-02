@@ -3,7 +3,8 @@ import 'dotenv/config'
 
 export const authenticateUser = async(req, res, next) => {
     try {
-        const token = req.headers.authtoken;
+        console.log("authenticate user")
+        const token = req.cookies.refreshToken;
     if(!token)
         return res.status(401).json({message : "no token found"});
 
