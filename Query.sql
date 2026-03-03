@@ -329,3 +329,27 @@ $$;
 
 
 ===================================================================================================================================================
+CREATE OR REPLACE FUNCTION cartItem(identifier INT)
+RETURNS TABLE (
+    prod_id INT,
+    prod_title TEXT,
+    prod_price NUMERIC,
+    prod_img TEXT,
+    prod_descrip TEXT,
+    prod_quantity NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.title::TEXT,
+        p.price,
+        p.image,
+        p.description,
+        c.quantity
+    FROM cart c JOIN products p on p.id = c.p_id
+    WHERE cust_id = identifier;
+END;
+$$;
