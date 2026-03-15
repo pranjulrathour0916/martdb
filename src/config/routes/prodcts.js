@@ -85,4 +85,17 @@ router.get('/cartItem', authenticateUser, async(req, res)=>{
   }
 })
 
+router.delete('/deletecartitem',authenticateUser, async(req, res)=>{
+try {
+  const id = req.user.id;
+  const {prod_id} = req.body
+  const deleteItem = await pool.query(`SELECT deletefromcart($1, $2)`, [id, prod_id])
+  console.log("item deleted", deleteItem.rows);
+  return res.status(200).send(JSON.stringify(deleteItem.rows))
+} catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Server error" });
+  }
+})
+
 export default router;

@@ -3,7 +3,7 @@ import pool from "../../db.js";
 import bcrypt from "bcryptjs";
 import { generateAccessToken, generateRefreshToken } from "../generateToken.js";
 import { validateLogin, validateSignUP } from "../../middleware/validators.js";
-import cypto from "crypto";
+import crypto from "crypto";
 import { authenticateUser } from "../../middleware/authenticate.js";
 
 const router = Router();
@@ -54,7 +54,7 @@ router.post("/login", validateLogin, async (req, res) => {
         const refreshToken = generateRefreshToken(pass.rows[0]);
 
         // For security reasons first hash the refresh token and then save it in DB
-        const hashedRefreshToken = cypto
+        const hashedRefreshToken = crypto
           .createHash("sha256") // sha256 is an algorithm
           .update(refreshToken) // updating what we are storing 
           .digest("hex"); // using hex for more readable format
@@ -179,5 +179,37 @@ router.post('/refreshToken', async(req, res)=>{
 })
 
 //Logout route pending
+
+router.post("/logout", async (req, res) => {
+  try {
+    console.log("logout works");
+
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(200).json({ message: "Already logged out" });
+    }
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(refreshToken)
+      .digest("hex");
+
+    await pool.query(
+      "DELETE FROM refresh_token WHERE tokenhash = $1",
+      [tokenHash]
+    );
+
+    res.clearCookie("refreshToken");
+
+    return res.status(200).json({
+      message: "Logout successful",
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+});
 
 export default router;

@@ -353,3 +353,22 @@ BEGIN
     WHERE cust_id = identifier;
 END;
 $$;
+
+===================================================================================================================================================
+
+
+CREATE OR REPLACE FUNCTION deletefromcart(c_id INT, prod_id INT)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM cart
+    WHERE cust_id = c_id AND p_id = prod_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Product % not found in cart for customer %', prod_id, c_id;
+    END IF;
+
+    RETURN c_id;
+END;
+$$;
