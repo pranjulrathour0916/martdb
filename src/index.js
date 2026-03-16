@@ -15,9 +15,11 @@ app.use(cookieParser())
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin : "http://localhost:3000",
-  "https://my-mart-amber.vercel.app",
-  credentials : true
+  origin: [
+    "http://localhost:3000",
+    "https://my-mart-amber.vercel.app"
+  ],
+  credentials: true
 }));
 app.use(useragentMiddleware());
 
