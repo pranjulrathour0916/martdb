@@ -66,7 +66,7 @@ router.post("/login", validateLogin, async (req, res) => {
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
           secure: true,
-          sameSite: "lax",
+          sameSite: "none",
           maxAge: 7 * 24 * 60 * 60 * 1000, // it becomes 7 days
         });
         res.status(200).json({
@@ -163,7 +163,7 @@ router.post('/refreshToken', async(req, res)=>{
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 

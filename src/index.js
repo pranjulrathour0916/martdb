@@ -23,7 +23,7 @@ app.use(cors({
 }));
 app.use(useragentMiddleware());
 
-
+app.set("trust proxy", 1);
 
 app.get('/mart', async(req, res)=>{
     const result = await pool.query('SELECT NOW()');
