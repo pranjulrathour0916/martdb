@@ -9,21 +9,24 @@ import geoip from 'geoip-lite';
 import prodRouter from './config/routes/prodcts.js'
 import cookieParser from 'cookie-parser';
 
-app.set('trust proxy', true);
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(cookieParser())
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
   origin: [
-    "http://localhost:3000",
-    "https://my-mart-amber.vercel.app"
+    "https://my-mart-two.vercel.app"
   ],
   credentials: true
 }));
 app.use(useragentMiddleware());
 
-app.set("trust proxy", 1);
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
 
 app.get('/mart', async(req, res)=>{
     const result = await pool.query('SELECT NOW()');
