@@ -22,11 +22,6 @@ app.use(cors({
 }));
 app.use(useragentMiddleware());
 
-app.options('*', cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
-
 
 app.get('/mart', async(req, res)=>{
     const result = await pool.query('SELECT NOW()');
