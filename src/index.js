@@ -10,6 +10,11 @@ import prodRouter from './config/routes/prodcts.js'
 import cookieParser from 'cookie-parser';
 
 app.set("trust proxy", 1);
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://my-mart-two.vercel.app"
+];
+
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -18,22 +23,18 @@ app.use(cors({
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  credentials: true
 }));
+
 app.use(express.json());
 app.use(cookieParser())
 const PORT = process.env.PORT || 5000;
 
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://my-mart-two.vercel.app"
-];
+
 
 app.use(useragentMiddleware());
-app.options("*", cors());
+
 
 app.get('/mart', async(req, res)=>{
     const result = await pool.query('SELECT NOW()');
