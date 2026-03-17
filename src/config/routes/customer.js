@@ -65,7 +65,7 @@ router.post("/login", validateLogin, async (req, res) => {
         // Saving refreshtoken in cookie
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
-          secure: false,
+          secure: true,
           sameSite: "lax",
           maxAge: 7 * 24 * 60 * 60 * 1000, // it becomes 7 days
         });
@@ -162,7 +162,7 @@ router.post('/refreshToken', async(req, res)=>{
     // Send new cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
