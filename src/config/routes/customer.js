@@ -5,6 +5,15 @@ import { generateAccessToken, generateRefreshToken } from "../generateToken.js";
 import { validateLogin, validateSignUP } from "../../middleware/validators.js";
 import crypto from "crypto";
 import { authenticateUser } from "../../middleware/authenticate.js";
+import Razorpay from "razorpay";
+
+
+
+const razorpay = new Razorpay({
+  key_id: "rzp_test_Si37yd8DoZ8cGx",
+  key_secret: "6sy3nTrSzaICX3TxIGA0LHGS"
+});
+
 
 const router = Router();
 
@@ -210,6 +219,17 @@ router.post("/logout", async (req, res) => {
     console.error(error);
     res.status(500).send("Server Error");
   }
+});
+
+router.post("/create-order", async (req, res) => {
+  const options = {
+    amount: 50000, // ₹500 in paise
+    currency: "INR",
+    receipt: "order_rcptid_11"
+  };
+
+  const order = await razorpay.orders.create(options);
+  res.json(order);
 });
 
 export default router;

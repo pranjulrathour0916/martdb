@@ -372,3 +372,14 @@ BEGIN
     RETURN c_id;
 END;
 $$;
+
+===================================================================================================================================================
+
+CREATE OR REPLACE FUNCTION search(search_term TEXT)
+RETURNS SETOF products AS $$
+BEGIN
+    RETURN QUERY
+    SELECT * FROM products 
+    WHERE title ILIKE '%' || search_term || '%' OR description ILIKE '%' || search_term || '%' ;
+END;
+$$ LANGUAGE plpgsql;

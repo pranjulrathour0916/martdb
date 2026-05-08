@@ -27,6 +27,24 @@ router.get("/getallProd", async (req, res) => {
   }
 });
 
+// search bar filter 
+
+router.get("/search", async (req, res) => {
+  try {
+      const search_item = req.query.search_item
+      console.log("search ",search_item)
+      const result = await pool.query(`select * from search($1)`, [
+        search_item,
+      ]);
+      console.log("result", result.rows)
+      res.send(JSON.stringify(result.rows));
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Get products by ID
 
 router.get("/getProdById/:id", async (req, res) => {

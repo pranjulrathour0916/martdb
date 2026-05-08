@@ -23,6 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.18.0",
     "postgres": "^3.4.8",
+    "razorpay": "^2.9.6",
     "redis": "^5.10.0"
   },
   "devDependencies": {
