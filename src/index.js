@@ -51,7 +51,7 @@ const geo = geoip.lookup(ip) || { country: 'Local/Unknown', city: 'Local' };
   });
 });
 
-app.use('/', router);
+app.use('/', router);2
 app.use('/prod',prodRouter )
 app.listen(process.env.PORT,()=>{
     console.log(`Server is runnning on port ${process.env.PORT}`)
