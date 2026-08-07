@@ -12,7 +12,8 @@ import cookieParser from 'cookie-parser';
 app.set("trust proxy", 1);
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://my-mart-two.vercel.app"
+  "https://my-mart-two.vercel.app",
+  "https://mart.pranjulrathour.in"
 ];
 
 app.use(cors({
